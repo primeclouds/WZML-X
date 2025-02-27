@@ -11,6 +11,7 @@ from .gd_search import gdrive_search, select_type
 from .help import arg_usage, bot_help
 from .mediainfo import mediainfo
 from .speedtest import speedtest
+from .broadcast import broadcast
 from .mirror_leech import (
     mirror,
     leech,
@@ -29,7 +30,7 @@ from .restart import (
 )
 from .rss import get_rss_menu, rss_listener
 from .search import torrent_search, torrent_search_update, initiate_search_tools
-from .services import start, start_cb, ping, log, log_cb
+from .services import start, start_cb, login, ping, log, log_cb
 from .shell import run_shell
 from .stats import bot_stats, stats_pages, get_packages_version
 from .status import task_status, status_pages
@@ -78,9 +79,11 @@ __all__ = [
     "initiate_search_tools",
     "start",
     "start_cb",
+    "login",
     "bot_help",
     "mediainfo",
     "speedtest",
+    "broadcast",
     "ping",
     "log",
     "log_cb",

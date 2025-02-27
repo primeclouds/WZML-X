@@ -29,6 +29,7 @@ class Config:
     JD_EMAIL = ""
     JD_PASS = ""
     LEECH_DUMP_CHAT = ""
+    CLEAN_LOG_MSG = False
     LEECH_PREFIX = ""
     LEECH_CAPTION = ""
     LEECH_SUFFIX = ""
@@ -65,6 +66,7 @@ class Config:
     TG_PROXY = None
     THUMBNAIL_LAYOUT = ""
     VERIFY_TIMEOUT = 0
+    LOGIN_PASS = ""
     TORRENT_TIMEOUT = 0
     TIMEZONE = "Asia/Kolkata"
     USER_MAX_TASKS = 0
