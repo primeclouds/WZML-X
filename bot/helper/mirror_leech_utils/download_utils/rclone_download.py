@@ -4,8 +4,9 @@ from secrets import token_hex
 from aiofiles.os import remove
 
 from .... import task_dict, task_dict_lock, LOGGER
+from ....core.config_manager import BinConfig
 from ...ext_utils.bot_utils import cmd_exec
-from ...ext_utils.task_manager import check_running_tasks, stop_duplicate_check
+from ...ext_utils.task_manager import check_running_tasks, stop_duplicate_check, limit_checker
 from ...mirror_leech_utils.rclone_utils.transfer import RcloneTransferHelper
 from ...mirror_leech_utils.status_utils.queue_status import QueueStatus
 from ...mirror_leech_utils.status_utils.rclone_status import RcloneStatus
@@ -29,7 +30,7 @@ async def add_rclone_download(listener, path):
         rpath = listener.link
 
     cmd1 = [
-        "cloudsweep",
+        BinConfig.RCLONE_NAME,
         "lsjson",
         "--fast-list",
         "--stat",
@@ -42,7 +43,7 @@ async def add_rclone_download(listener, path):
         "--log-systemd",
     ]
     cmd2 = [
-        "cloudsweep",
+        BinConfig.RCLONE_NAME,
         "size",
         "--fast-list",
         "--json",
@@ -97,6 +98,9 @@ async def add_rclone_download(listener, path):
         msg, button = await stop_duplicate_check(listener)
         if msg:
             await listener.on_download_error(msg, button)
+            return
+        if limit_exceeded := await limit_checker(listener):
+            await listener.on_download_error(limit_exceeded, is_limit=True)
             return
 
     add_to_queue, event = await check_running_tasks(listener)

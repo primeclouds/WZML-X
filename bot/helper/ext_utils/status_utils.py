@@ -44,6 +44,7 @@ class EngineStatus:
         self.STATUS_GDAPI = f"Google-API v{bot_cache['eng_versions']['gapi']}"
         self.STATUS_QBIT = f"qBit v{bot_cache['eng_versions']['qBittorrent']}"
         self.STATUS_TGRAM = f"Pyro v{bot_cache['eng_versions']['pyrofork']}"
+        self.STATUS_MEGA = f"MegaAPI v{bot_cache['eng_versions']['mega']}"
         self.STATUS_YTDLP = f"yt-dlp v{bot_cache['eng_versions']['yt-dlp']}"
         self.STATUS_FFMPEG = f"ffmpeg v{bot_cache['eng_versions']['ffmpeg']}"
         self.STATUS_7Z = f"7z v{bot_cache['eng_versions']['7z']}"
@@ -248,7 +249,10 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             if tstatus == MirrorStatus.STATUS_DOWNLOAD and (
                 task.listener.is_torrent or task.listener.is_qbit
             ):
-                msg += f"\n┠ <b>Seeders</b> → {task.seeders_num()} | <b>Leechers</b> → {task.leechers_num()}"
+                try:
+                    msg += f"\n┠ <b>Seeders</b> → {task.seeders_num()} | <b>Leechers</b> → {task.leechers_num()}"
+                except Exception:
+                    pass
             # TODO: Add Connected Peers
         elif tstatus == MirrorStatus.STATUS_SEED:
             msg += f"\n┠ <b>Size</b> → <i>{task.size()}</i> | <b>Uploaded</b>  → <i>{task.uploaded_bytes()}</i>"

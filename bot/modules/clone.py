@@ -5,6 +5,7 @@ from secrets import token_hex
 from aiofiles.os import remove
 
 from .. import LOGGER, bot_loop, task_dict, task_dict_lock
+from ..core.config_manager import BinConfig
 from ..helper.ext_utils.bot_utils import (
     COMMAND_USAGE,
     arg_parser,
@@ -18,7 +19,8 @@ from ..helper.ext_utils.links_utils import (
     is_rclone_path,
     is_share_link,
 )
-from ..helper.ext_utils.task_manager import pre_task_check, stop_duplicate_check
+from ..helper.ext_utils.task_manager import pre_task_check, stop_duplicate_check, limit_checker
+from ..helper.ext_utils.status_utils import get_readable_file_size
 from ..helper.listeners.task_listener import TaskListener
 from ..helper.mirror_leech_utils.download_utils.direct_link_generator import (
     direct_link_generator,
@@ -165,6 +167,14 @@ class Clone(TaskListener):
             if msg:
                 await send_message(self.message, msg, button)
                 return
+            if limit_exceeded := await limit_checker(self):
+                await send_message(self.message, f"""〶 <b><i><u>Limit Breached:</u></i></b>
+│
+┟ <b>Task Size</b> → {get_readable_file_size(self.size)}
+┠ <b>In Mode</b> → {self.mode[0]}
+┠ <b>Out Mode</b> → {self.mode[1]}
+{limit_exceeded}""")
+                return
             await self.on_download_start()
             LOGGER.info(f"Clone Started: Name: {self.name} - Source: {self.link}")
             drive = GoogleDriveClone(self)
@@ -206,7 +216,7 @@ class Clone(TaskListener):
             else:
                 src_path = self.link
                 cmd = [
-                    "cloudsweep",
+                    BinConfig.RCLONE_NAME,
                     "lsjson",
                     "--fast-list",
                     "--stat",
@@ -261,7 +271,7 @@ class Clone(TaskListener):
                 return
             LOGGER.info(f"Cloning Done: {self.name}")
             cmd1 = [
-                "cloudsweep",
+                BinConfig.RCLONE_NAME,
                 "lsf",
                 "--fast-list",
                 "-R",
@@ -273,7 +283,7 @@ class Clone(TaskListener):
                 "--log-systemd",
             ]
             cmd2 = [
-                "cloudsweep",
+                BinConfig.RCLONE_NAME,
                 "lsf",
                 "--fast-list",
                 "-R",
@@ -285,7 +295,7 @@ class Clone(TaskListener):
                 "--log-systemd",
             ]
             cmd3 = [
-                "cloudsweep",
+                BinConfig.RCLONE_NAME,
                 "size",
                 "--fast-list",
                 "--json",

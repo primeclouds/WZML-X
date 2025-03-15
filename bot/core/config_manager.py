@@ -31,6 +31,22 @@ class Config:
     IS_TEAM_DRIVE = False
     JD_EMAIL = ""
     JD_PASS = ""
+    MEGA_EMAIL = ""
+    MEGA_PASSWORD = ""
+    DIRECT_LIMIT = 0
+    MEGA_LIMIT = 0
+    TORRENT_LIMIT = 0
+    GD_DL_LIMIT = 0
+    RC_DL_LIMIT = 0
+    CLONE_LIMIT = 0
+    JD_LIMIT = 0
+    NZB_LIMIT = 0
+    YTDLP_LIMIT = 0
+    PLAYLIST_LIMIT = 0
+    LEECH_LIMIT = 0
+    EXTRACT_LIMIT = 0
+    ARCHIVE_LIMIT = 0
+    STORAGE_LIMIT = 0
     LEECH_DUMP_CHAT = ""
     CLEAN_LOG_MSG = False
     LEECH_PREFIX = ""
@@ -201,3 +217,11 @@ class Config:
                 value = value.strip()
             if not value:
                 raise ValueError(f"{key} variable is missing!")
+
+
+class BinConfig:
+    ARIA2_NAME = "speeddemon"
+    QBIT_NAME = "torrentgod"
+    FFMPEG_NAME = "vidwarlock"
+    RCLONE_NAME = "cloudphantom"
+    SABNZBD_NAME = "newsslayer"

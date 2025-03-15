@@ -6,8 +6,9 @@ from secrets import token_hex
 from yt_dlp import YoutubeDL, DownloadError
 
 from .... import task_dict_lock, task_dict
+from ....core.config_manager import BinConfig
 from ...ext_utils.bot_utils import sync_to_async, async_to_sync
-from ...ext_utils.task_manager import check_running_tasks, stop_duplicate_check
+from ...ext_utils.task_manager import check_running_tasks, stop_duplicate_check, limit_checker
 from ...mirror_leech_utils.status_utils.queue_status import QueueStatus
 from ...telegram_helper.message_utils import send_status_message
 from ..status_utils.yt_dlp_status import YtDlpStatus
@@ -52,6 +53,7 @@ class YoutubeDLHelper:
         self._gid = ""
         self._ext = ""
         self.is_playlist = False
+        self.playlist_count = 0
         self.opts = {
             "progress_hooks": [self._on_download_progress],
             "logger": MyLogger(self, self._listener),
@@ -64,7 +66,7 @@ class YoutubeDLHelper:
             "overwrites": True,
             "writethumbnail": True,
             "trim_file_name": 220,
-            "ffmpeg_location": "/bin/videomancer",
+            "ffmpeg_location": f"/bin/{BinConfig.FFMPEG_NAME}",
             "fragment_retries": 10,
             "retries": 10,
             "retry_sleep_functions": {
@@ -134,7 +136,7 @@ class YoutubeDLHelper:
 
     def _extract_meta_data(self):
         if self._listener.link.startswith(("rtmp", "mms", "rstp", "rtmps")):
-            self.opts["external_downloader"] = "videomancer"
+            self.opts["external_downloader"] = BinConfig.FFMPEG_NAME
         with YoutubeDL(self.opts) as ydl:
             try:
                 result = ydl.extract_info(self._listener.link, download=False)
@@ -142,6 +144,8 @@ class YoutubeDLHelper:
                     raise ValueError("Info result is None")
             except Exception as e:
                 return self._on_download_error(str(e))
+            if self.is_playlist:
+                self.playlist_count = result.get("playlist_count", 0)
             if "entries" in result:
                 for entry in result["entries"]:
                     if not entry:
@@ -314,6 +318,10 @@ class YoutubeDLHelper:
         msg, button = await stop_duplicate_check(self._listener)
         if msg:
             await self._listener.on_download_error(msg, button)
+            return
+        
+        if limit_exceeded := await limit_checker(self._listener, self.playlist_count):
+            await self._listener.on_download_error(limit_exceeded, is_limit=True)
             return
 
         add_to_queue, event = await check_running_tasks(self._listener)
