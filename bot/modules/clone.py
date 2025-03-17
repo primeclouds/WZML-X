@@ -125,24 +125,18 @@ class Clone(TaskListener):
             await send_message(
                 self.message, COMMAND_USAGE["clone"][0], COMMAND_USAGE["clone"][1]
             )
+            await delete_links(self.message)
             return
         LOGGER.info(self.link)
         try:
             await self.before_start()
         except Exception as e:
             await send_message(self.message, e)
+            await delete_links(self.message)
             return
 
-        self.source_url = (
-            self.link
-            if len(self.link) > 0 and self.link.startswith("http")
-            else (
-                f"https://t.me/share/url?url={self.link}"
-                if self.link
-                else self.message.link
-            )
-        )
         self._set_mode_engine()
+        await delete_links(self.message)
 
         await self._proceed_to_clone(sync)
 

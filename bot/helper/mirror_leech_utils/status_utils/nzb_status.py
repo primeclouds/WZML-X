@@ -1,4 +1,5 @@
 from asyncio import gather
+from collections import defaultdict
 
 from .... import LOGGER, sabnzbd_client, nzb_jobs, nzb_listener_lock
 from ...ext_utils.status_utils import (
@@ -10,7 +11,7 @@ from ...ext_utils.status_utils import (
 )
 
 
-async def get_download(nzo_id, old_info=None):
+async def get_download(nzo_id, old_info):
     try:
         queue = await sabnzbd_client.get_downloads(nzo_ids=nzo_id)
         if res := queue["queue"]["slots"]:
@@ -46,7 +47,7 @@ async def get_download(nzo_id, old_info=None):
                 old_info["status"] = slot["status"]
         return old_info
     except Exception as e:
-        LOGGER.error(f"{e}: Sabnzbd, while getting job info. ID: {nzo_id}")
+        LOGGER.error(f"{e}: Sabnzbd, while getting job info. ID: {nzo_id}", exc_info=True)
         return old_info
 
 
@@ -55,7 +56,7 @@ class SabnzbdStatus:
         self.queued = queued
         self.listener = listener
         self._gid = gid
-        self._info = None
+        self._info = defaultdict(lambda: "")
         self.engine = EngineStatus().STATUS_SABNZBD
 
     async def update(self):
