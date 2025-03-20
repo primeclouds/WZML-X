@@ -46,8 +46,14 @@ async def add_mega_download(listener, path):
         folder_api.addListener(mega_listener)
 
         await async_api.run(folder_api.loginToFolder, listener.link)
+        LOGGER.info(f"Folder login node: {mega_listener.node.getName()}, Type: {mega_listener.node.getType()}")
         node = await sync_to_async(folder_api.authorizeNode, mega_listener.node)
-
+        LOGGER.info(f"Authorized node: {node.getName()}, Type: {node.getType()}")
+        
+        children = api.getChildren(node)
+        child_nodes = [children.get(i) for i in range(children.size())]
+        LOGGER.info(f"Found children: {[child.getName() for child in child_nodes]}")
+    
     if mega_listener.error:
         await listener.on_download_error(mega_listener.error)
         await async_api.logout()
